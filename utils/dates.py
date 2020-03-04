@@ -11,15 +11,15 @@ LOCAL_TIMEZONE = tzlocal.get_localzone()
 def get_date_parts():
     now = datetime.utcnow()
     last_hour_now=now - timedelta(hours=1)
-    
+
     now_hour = str(now.hour).rjust(2, '0')
     now_month = str(now.month).rjust(2, '0')
-    now_day = str(now.day).rjust(2, '0')    
+    now_day = str(now.day).rjust(2, '0')
     now_year = str(now.year)
     last_hour_hour = str(last_hour_now.hour).rjust(2, '0')
     last_hour_month = str(last_hour_now.month).rjust(2, '0')
-    last_hour_day = str(last_hour_now.day).rjust(2, '0')    
-    last_hour_year = str(last_hour_now.year)    
+    last_hour_day = str(last_hour_now.day).rjust(2, '0')
+    last_hour_year = str(last_hour_now.year)
 
     return(now_hour, now_month, now_day, now_year, last_hour_hour, last_hour_month,last_hour_day, last_hour_year)
 
