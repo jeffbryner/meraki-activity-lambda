@@ -1,0 +1,2 @@
+FIREHOSE_DELIVERY_STREAM: uoc-input-bucket
+MERAKI_API_KEY_NAME: meraki-api-key
