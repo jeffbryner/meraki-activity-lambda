@@ -15,6 +15,7 @@ logger.setLevel(logging.INFO)
 FIREHOSE_DELIVERY_STREAM= os.environ.get('FIREHOSE_DELIVERY_STREAM','test')
 FIREHOSE_BATCH_SIZE=os.environ.get('FIREHOSE_BATCH_SIZE',100)
 MERAKI_API_KEY=os.environ.get('MERAKI_API_KEY','unknown')
+MERAKI_PRODUCT_TYPES=os.environ.get('MERAKI_PRODUCT_TYPES','wireless')
 ssmclient=boto3.client('ssm')
 secrets_manager = boto3.client('secretsmanager')
 f_hose = boto3.client('firehose')
@@ -59,29 +60,35 @@ def handler(event,context):
     networks=json.loads(result.json())
     last_run_time = utcnow().isoformat()
     records_retrieved = False
-    perPage=1000
+    per_page=1000
+    # Meraki has 'productTypes': ['appliance', 'camera', 'switch', 'wireless']
+    # what event/product types do we want?
+    event_set=set(MERAKI_PRODUCT_TYPES.split(","))
 
     for network in networks:
         network_id=network["id"]
-
         # get events since last time we ran (default an hour ago)
         start_after=get_parameter('/meraki-events/lastquerytime',(utcnow()-timedelta(minutes=60)).isoformat())
         # reformat date string to what Meraki likes
         # Z instead of +00:00
         start_after='{}'.format(start_after.replace('+00:00','Z'))
         logger.info(f"Looking for records since: {start_after}")
-        next_page = True
-        while next_page:
-            url=f'https://api.meraki.com/api/v0/networks/{network_id}/events?productType=wireless&perPage={perPage}&startingAfter={start_after}'
-            result=session.get(url)
-            events=result.json()['events']
-            start_after=result.json()['pageEndAt']
-            if len(events) == 0:
-                next_page = False
-            else:
-                logger.info(f"sending: {len(events)} meraki records to firehose")
-                send_to_firehose(events)
-                records_retrieved = True
+
+        product_set=set(network["productTypes"])
+        # if it's not wireless, move on
+        for event_type in event_set.intersection(product_set):
+            next_page = True
+            while next_page:
+                url=f'https://api.meraki.com/api/v0/networks/{network_id}/events?productType={event_type}&perPage={per_page}&startingAfter={start_after}'
+                result=session.get(url)
+                events=result.json()['events']
+                start_after=result.json()['pageEndAt']
+                if len(events) == 0:
+                    next_page = False
+                else:
+                    logger.info(f"sending: {len(events)} meraki records to firehose")
+                    send_to_firehose(events)
+                    records_retrieved = True
 
     # sometimes activity log lags behind realtime
     # so regardless of the time we request, there won't be records available until later
