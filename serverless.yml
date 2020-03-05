@@ -14,7 +14,7 @@ provider:
     REGION: ${opt:region, self:provider.region}
     CONFIGFILE: config.${self:provider.stage}.yml
     FIREHOSE_DELIVERY_STREAM: ${file(config.${self:provider.stage}.yml):FIREHOSE_DELIVERY_STREAM}
-    MERAKI_API_KEY: ${file(config.${self:provider.stage}.yml):MERAKI_API_KEY}
+    MERAKI_API_KEY_NAME: ${file(config.${self:provider.stage}.yml):MERAKI_API_KEY_NAME}
     MERAKI_PRODUCT_TYPES: ${file(config.${self:provider.stage}.yml):MERAKI_PRODUCT_TYPES}
   iamRoleStatements:
     - Effect: Allow
@@ -26,7 +26,7 @@ provider:
       Action:
         - secretsmanager:*
       Resource:
-        - "arn:aws:secretsmanager:${opt:region, self:provider.region}:*:secret:${self:provider.environment.MERAKI_API_KEY}*"
+        - "arn:aws:secretsmanager:${opt:region, self:provider.region}:*:secret:${self:provider.environment.MERAKI_API_KEY_NAME}*"
     - Effect: Allow
       Action:
         - firehose:PutRecord
