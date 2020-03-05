@@ -14,7 +14,7 @@ logger.setLevel(logging.INFO)
 
 FIREHOSE_DELIVERY_STREAM= os.environ.get('FIREHOSE_DELIVERY_STREAM','test')
 FIREHOSE_BATCH_SIZE=os.environ.get('FIREHOSE_BATCH_SIZE',100)
-MERAKI_API_KEY=os.environ.get('MERAKI_API_KEY','unknown')
+MERAKI_API_KEY_NAME=os.environ.get('MERAKI_API_KEY_NAME','unknown')
 MERAKI_PRODUCT_TYPES=os.environ.get('MERAKI_PRODUCT_TYPES','wireless')
 ssmclient=boto3.client('ssm')
 secrets_manager = boto3.client('secretsmanager')
@@ -43,7 +43,7 @@ def send_to_firehose(records):
 
 def handler(event,context):
     # get the api key
-    meraki_api_key = secrets_manager.get_secret_value(SecretId=MERAKI_API_KEY)["SecretString"]
+    meraki_api_key = secrets_manager.get_secret_value(SecretId=MERAKI_API_KEY_NAME)["SecretString"]
 
     # setup a session
     session = requests.Session()
@@ -57,7 +57,7 @@ def handler(event,context):
     # get the networks associated with this org
     url=f'https://api.meraki.com/api/v0/organizations/{organizationId}/networks'
     result=session.get(url)
-    networks=json.loads(result.json())
+    networks=result.json()
     last_run_time = utcnow().isoformat()
     records_retrieved = False
     per_page=1000
