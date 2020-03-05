@@ -35,7 +35,7 @@ provider:
         - "arn:aws:firehose:${opt:region, self:provider.region}:*:deliverystream/${self:provider.environment.FIREHOSE_DELIVERY_STREAM}"
 
 functions:
-  gsuite-activity:
+  meraki-activity:
     handler: meraki-activity.handler
     timeout: 600
     reservedConcurrency: 1
